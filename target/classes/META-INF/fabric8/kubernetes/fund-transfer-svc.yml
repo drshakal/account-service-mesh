@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    discovery.3scale.net/discovery-version: v1
+    discovery.3scale.net/scheme: http
+    discovery.3scale.net/port: "8080"
+    fabric8.io/git-commit: 0d00b5b8f5939d1afe221f576b61309a4830295e
+    fabric8.io/iconUrl: img/icons/camel.svg
+    fabric8.io/git-branch: master
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9779"
+  labels:
+    expose: "true"
+    discovery.3scale.net: "true"
+    app: fund-transfer
+    provider: fabric8
+    version: "2.1"
+    group: in.co.dhdigital
+  name: fund-transfer
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: fund-transfer
+    provider: fabric8
+    group: in.co.dhdigital

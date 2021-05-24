@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       https://camel.apache.org/schema/spring/camel-spring.xsd">
+    <bean class="org.mycompany.processors.JsonProcessor" id="myProcessor"/>
+    <bean class="org.mycompany.processors.JsonProcessorBean" id="myProcessorBean"/>
+    <camelContext id="camel" xmlns="http://camel.apache.org/schema/spring">
+        <dataFormats>
+            <xmljson id="xmljson"/>
+            <json id="convertRequest" library="Jackson"
+                objectMapper="com.camel.CustomObjectMapper" unmarshalTypeName="org.mycompany.models.AccountDetailsRequest"/>
+            <json id="convertResponce" library="Jackson"
+                objectMapper="com.camel.CustomObjectMapper" unmarshalTypeName="org.mycompany.models.CustomerID"/>
+        </dataFormats>
+        <restConfiguration bindingMode="json" component="jetty"
+            host="localhost" port="8083">
+            <endpointProperty key="continuationTimeout" value="300000"/>
+        </restConfiguration>
+        <rest id="service-mesh" path="/api/v1">
+            <post id="account-details"
+                outType="org.mycompany.models.AccountDetailsType"
+                type="org.mycompany.models.AccountDetailsRequest" uri="/account-details">
+                <to uri="direct:account-details"/>
+            </post>
+        </rest>
+        <route id="account-details">
+            <from id="_from1" uri="direct:account-details"/>
+            <marshal id="_marshal1" ref="convertRequest"/>
+            <log id="log1" message="----------${headers}**********${body}---------------"/>
+            <to id="to02" uri="http://customerid-build02-customer-detail-service-mesh.apps.ocp4-cluster-002.int.dhdigital.co.in/api/customerid/id/1?bridgeEndpoint=true"/>
+            <to id="_process1" uri="myProcessor"/>
+            <unmarshal id="_unm" ref="convertResponce"/>
+            <to id="_process2" uri="myProcessorBean"/>
+            <log id="log1" message="----------${headers}**********${body}---------------"/>
+        </route>
+    </camelContext>
+</beans>
